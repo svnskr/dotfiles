@@ -1,0 +1,57 @@
+### Schritt 1: Ordnerstruktur aufbauen und Dateien verschieben
+Wir nutzen den `mkdir -p` Befehl. Das `-p` sorgt dafür, dass alle Unterordner in einem Rutsch erstellt werden.
+
+```bash
+# Erstellt die Struktur in deinem neuen Dotfiles-Ordner
+mkdir -p ~/dotfiles/hypr/.config/hypr
+
+# Verschiebt deine aktuelle Config dorthin
+mv ~/.config/hypr/* ~/dotfiles/hypr/.config/hypr/
+```
+
+*Kurzer Check:* Wenn du jetzt `ls ~/.config/hypr` tippst, sollte der Ordner leer sein. Keine Panik, das biegen wir gleich mit Stow wieder gerade.
+
+### Schritt 2: GitHub-Repo via Terminal anlegen
+Du musst nicht auf die GitHub-Webseite gehen. Wenn du das **GitHub CLI** (`gh`) installiert hast, geht das in Sekunden.
+
+1. **Installieren & Einloggen** (falls noch nicht erledigt):
+   ```bash
+   sudo pacman -S github-cli
+   gh auth login
+   ```
+   (Folge den Anweisungen, wähle "GitHub.com" und "HTTPS" oder "SSH".)
+
+2. **Repo erstellen:**
+   Gehe in deinen Dotfiles-Ordner und schieß das Repo hoch:
+   ```bash
+   cd ~/dotfiles
+   git init
+   git add .
+   git commit -m "Initialer Hyprland-Config Push"
+   
+   # Erstellt das Repo auf GitHub (den Namen kannst du frei wählen)
+   gh repo create dotfiles --public --source=. --remote=origin --push
+   ```
+
+### Schritt 3: Die Magie von Stow (Verlinken)
+Jetzt ist dein Ordner `~/.config/hypr` leer, was dein Hyprland gar nicht lustig finden wird. Wir sorgen dafür, dass das System die Dateien im Dotfiles-Ordner findet, indem wir "Symlinks" anlegen:
+
+```bash
+cd ~/dotfiles
+stow -v -t ~ hypr
+```
+*Was passiert hier?* Stow guckt in den Ordner `hypr`, sieht den Pfad `.config/hypr` darin und erstellt eine virtuelle Brücke von `~/dotfiles/hypr/.config/hypr` nach `~/.config/hypr`. 
+
+### Warum das jetzt mega ist:
+Wenn du jetzt deine Config in `nvim` änderst, änderst du direkt die Datei im Git-Repo. Wenn du fertig bist, tippst du einfach:
+```bash
+cd ~/dotfiles
+git add .
+git commit -m "Update Keybinds"
+git push
+```
+...und zack, ist alles auf GitHub. Auf einem anderen PC machst du nur `git pull` und `stow` – fertig.
+
+**Wichtiger Hinweis:** Wenn du später andere Programme (wie nvim) hinzufügen willst, erstellst du einfach `~/dotfiles/nvim/.config/nvim/` und führst `stow nvim` aus. 
+
+Läuft der `gh auth login` bei dir durch oder hängst du irgendwo?
